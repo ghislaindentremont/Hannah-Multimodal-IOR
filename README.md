@@ -1,5 +1,5 @@
-# Ghis-Multimodal-IOR
-Cognitive Psychology/Neuroscience Stuty - Experiment and Analysis Script 
+# Hannah-Multimodal-IOR
+Cognitive Psychology/Neuroscience Study - Experiment and Analysis Script 
 
 This is a follow-up to the experiment outlined in ghislaindentremont/Ghis-Multimodal-IOR.
       
