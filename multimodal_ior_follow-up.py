@@ -41,12 +41,13 @@ if __name__ == '__main__':
 	cue_modality_list = ['visual','tactile']
 	cue_location_list = ['left','right']
 	target_location_list = ['left','right']
-	target_modality_list = ['visual','tactile']
-	target_type_list = ['catch','target','target','target','target','target','target','target','target','target']
+	target_modality_list = ['visual']
+	target_type_list = ['catch','target','target','target','target','target','target','target','target','target'
+						, 'catch','target','target','target','target','target','target','target','target','target'] # had to double list to get same number of trials per block
 
 	fixation_duration_min = 0.500
 	fixation_duration_max = 1.500
-	cue_target_oa = 1.000
+	cue_target_oa = .7
 	cue_duration = 0.050
 	# target_duration = 0.100
 	response_timeout = 1.000
