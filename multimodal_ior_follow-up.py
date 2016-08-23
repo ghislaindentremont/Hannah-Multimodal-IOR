@@ -820,6 +820,7 @@ if __name__ == '__main__':
 						if not block == 'practice':
 							pass
 						else:
+							time.sleep(0.01)
 							labjack.getFeedback(u3.PortStateWrite(State = [97,0,0]))
 						cue_started = True
 						last_cue_state = 1
