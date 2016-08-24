@@ -25,7 +25,7 @@ if __name__ == '__main__':
 	stamper_window_color = [255,255,255]
 	stamper_do_border = True
 
-	do_eyelink = False
+	do_eyelink = True
 
 	eyelink_window_size = (200,200)
 	eyelink_window_position = (900,0)
@@ -857,8 +857,7 @@ if __name__ == '__main__':
 								if (now>cue_start_time) and (now<(target_on_time+.3)):
 									critical_blink = 'TRUE'
 									labjack.getFeedback(u3.PortStateWrite(State = [42,0,0]))
-#								if block == 'practice':
-#									feedback_text = 'Blinked!'
+								feedback_text = 'Blinked!'
 							elif message=='gaze_target_lost':
 								saccade = 'TRUE'
 								now = get_time()
@@ -866,17 +865,18 @@ if __name__ == '__main__':
 								if (now>cue_start_time) and (now<(target_on_time+.3)):
 									critical_saccade = 'TRUE'
 									labjack.getFeedback(u3.PortStateWrite(State = [43,0,0]))
-#								if block == 'practice':
-#									feedback_text = 'Eyes moved!'
-				#			if block == 'practice':	
-				#				feedback_color = [255,0,0,255]
-				#				trial_done = True
-				#				trial_list.append([cue_modality , cue_location , target_location, target_modality])
-				#				random.shuffle(trial_list)
-				#				labjack.getFeedback(u3.PortStateWrite(State = [2,0,0]))
-				#				time.sleep(.01)
-				#				labjack.getFeedback(u3.PortStateWrite(State = [99,0,0]))
-				#				break
+								feedback_text = 'Eyes moved!'
+				# This code recycles trials during practice only. 
+				# Getting rid of if-statement will recycle all trials  	
+							# if block == 'practice':	
+							feedback_color = [255,0,0,255]
+							trial_done = True
+							# trial_list.append([cue_modality , cue_location , target_location, target_modality])
+							# random.shuffle(trial_list)
+							labjack.getFeedback(u3.PortStateWrite(State = [2,0,0]))
+							time.sleep(.01)
+							labjack.getFeedback(u3.PortStateWrite(State = [99,0,0]))
+							break
 						elif message[0]=='smaller_saccade':
 							if message[1]>biggest_small_saccade:
 								biggest_small_saccade = message[1]
