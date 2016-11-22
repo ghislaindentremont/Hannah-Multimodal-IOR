@@ -42,12 +42,12 @@ if __name__ == '__main__':
 	cue_location_list = ['left','right']
 	target_location_list = ['left','right']
 	target_modality_list = ['visual']
-	target_type_list = ['catch','target','target','target','target','target','target','target','target','target'
-						, 'catch','target','target','target','target','target','target','target','target','target'] # had to double list to get same number of trials per block
+	target_type_list = ['catch','target','target','target','target','target','target','target','target','target']
+						# , 'catch','target','target','target','target','target','target','target','target','target'] # had to double list to get same number of trials per block
+	cue_target_oa_list = [.7, 1]
 
 	fixation_duration_min = 0.500
 	fixation_duration_max = 1.500
-	cue_target_oa = .7
 	cue_duration = 0.050
 	# target_duration = 0.100
 	response_timeout = 1.000
@@ -558,7 +558,8 @@ if __name__ == '__main__':
 				for target_location in target_location_list:
 					for target_modality in target_modality_list:
 						for target_type in target_type_list:
-							trials.append([cue_modality,cue_location,target_location,target_modality,target_type])
+                            for cue_target_oa in cue_target_oa_list:
+							    trials.append([cue_modality,cue_location,target_location,target_modality,target_type, cue_target_oa])
 		random.shuffle(trials)
 		return trials
 
@@ -636,10 +637,10 @@ if __name__ == '__main__':
 			trial_num = trial_num + 1
 			print 'Block: '+str(block)+'; Trial: '+str(trial_num)
 			#parse the trial info
-			cue_modality , cue_location , target_location, target_modality , target_type = trial_list.pop()
+			cue_modality , cue_location , target_location, target_modality , target_type, cue_target_oa = trial_list.pop()
 
-			trial_descrptor = '\t'.join(map(str,[sub_info[0],block,trial_num]))
-			
+			trial_descriptor = '\t'.join(map(str,[sub_info[0],block,trial_num]))
+
 			if cue_location == 'left':
 				if cue_modality == 'visual':
 					labjack_to_eeg_cue_int = 10
@@ -693,6 +694,11 @@ if __name__ == '__main__':
 			if target_type=='catch':
 				labjack_to_eeg_target_int = 36
 
+            if cue_target_oa == .7:
+                labjack_to_eeg_cue_int = labjack_to_eeg_cue_int + 40
+                labjack_to_eeg_target_int = labjack_to_eeg_target_int + 40
+            elif cue_target_oa == 1:
+                pass
 
 			labjack_to_tactamp_cue_on_bits = [0,0,0,0,0,0,0,0]
 			if cue_modality == 'visual':
@@ -762,7 +768,7 @@ if __name__ == '__main__':
 									eyelink_child.qTo.put(['keycode',event['keysym']])
 				eyelink_child.qTo.put(['report_blinks',True])
 				eyelink_child.qTo.put(['report_saccades',True])
-				eyelink_child.qTo.put(['send_message','trial_start\t'+trial_descrptor])
+				eyelink_child.qTo.put(['send_message','trial_start\t'+trial_descriptor])
 			trial_initiation_time = get_time() - start
 
 			voicekey_child.qTo.put(['report_responses',False])
@@ -915,7 +921,7 @@ if __name__ == '__main__':
 			voicekey_child.qTo.put(['report_responses',False])
 			#tell eyelink trial is done
 			if do_eyelink:
-				eyelink_child.qTo.put(['send_message','trialDone\t'+trial_descrptor])
+				eyelink_child.qTo.put(['send_message','trialDone\t'+trial_descriptor])
 				eyelink_child.qTo.put(['report_blinks',False])
 				eyelink_child.qTo.put(['report_saccades',False])
 			#make sure all labjack outputs are off
@@ -950,7 +956,7 @@ if __name__ == '__main__':
 								stim_display.refresh()
 								feedback_done_time = get_time() + feedback_duration
 			#write out trial info
-			data_to_write = '\t'.join(map(str,[ sub_info_for_file , message_viewing_time , block , trial_num , trial_initiation_time , fixation_duration , cue_location , cue_modality , target_location, target_modality , target_type , target_response_key , target_response_rt , pre_target_response , feedback_response , recalibration , blink , saccade, biggest_small_saccade, critical_blink, critical_saccade, target_started_TF]))
+			data_to_write = '\t'.join(map(str,[ sub_info_for_file , message_viewing_time , block , trial_num , trial_initiation_time , fixation_duration , cue_location , cue_modality , target_location, target_modality , target_type, cue_target_oa, target_response_key , target_response_rt , pre_target_response , feedback_response , recalibration , blink , saccade, biggest_small_saccade, critical_blink, critical_saccade, target_started_TF]))
 			writer_child.qTo.put(['write','data',data_to_write])
 			if (trial_num%40==0) & (len(trial_list)>0) : 
 				print 'on break'
@@ -988,7 +994,7 @@ if __name__ == '__main__':
 		eyelink_child.qTo.put(['edf_path','_Data/'+filebase+'/'+filebase+'_eyelink.edf'])
 
 	writer_child.qTo.put(['new_file','data','_Data/'+filebase+'/'+filebase+'_data.txt'])
-	header ='\t'.join(['id' , 'year' , 'month' , 'day' , 'hour' , 'minute' , 'sex' , 'age'  , 'handedness' , 'message_viewing_time' , 'block' , 'trial_num' , 'trial_initiation_time' , 'fixation_duration' ,'cue_location' , 'cue_modality' ,  'target_location' , 'target_modality', 'target_type' , 'target_response_key' , 'target_response_rt' , 'pre_target_response','feedback_response' , 'recalibration' , 'blink' , 'saccade' , 'biggest_small_saccade','critical_blink', 'critical_saccade', 'target_started_TF'])
+	header ='\t'.join(['id' , 'year' , 'month' , 'day' , 'hour' , 'minute' , 'sex' , 'age'  , 'handedness' , 'message_viewing_time' , 'block' , 'trial_num' , 'trial_initiation_time' , 'fixation_duration' ,'cue_location' , 'cue_modality' ,  'target_location' , 'target_modality', 'target_type', 'cue_target_oa' , 'target_response_key' , 'target_response_rt' , 'pre_target_response','feedback_response' , 'recalibration' , 'blink' , 'saccade' , 'biggest_small_saccade','critical_blink', 'critical_saccade', 'target_started_TF'])
 	writer_child.qTo.put(['write','data',header])
 
 
