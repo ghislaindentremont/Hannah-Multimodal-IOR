@@ -3,3 +3,4 @@ _EEG/
 *.pyc
 .idea/
 *.history
+.DS_Store
