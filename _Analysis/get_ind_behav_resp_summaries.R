@@ -34,6 +34,7 @@ a = read.table(filename, header = T)
 
 print("getting rid of practice trials...")
 b = a[a$block != "practice",]
+b$cue_target_oa = factor(b$cue_target_oa)
 
 summarize_b = summary(b)
 

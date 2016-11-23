@@ -37,7 +37,7 @@ if __name__ == '__main__':
 	calibration_dot_size_in_degrees = .5
 	gaze_target_criterion_in_degrees = 2
 
- 	
+	
 	cue_modality_list = ['visual','tactile']
 	cue_location_list = ['left','right']
 	target_location_list = ['left','right']
@@ -558,8 +558,8 @@ if __name__ == '__main__':
 				for target_location in target_location_list:
 					for target_modality in target_modality_list:
 						for target_type in target_type_list:
-                            for cue_target_oa in cue_target_oa_list:
-							    trials.append([cue_modality,cue_location,target_location,target_modality,target_type, cue_target_oa])
+							for cue_target_oa in cue_target_oa_list:
+								trials.append([cue_modality,cue_location,target_location,target_modality,target_type, cue_target_oa])
 		random.shuffle(trials)
 		return trials
 
@@ -694,11 +694,11 @@ if __name__ == '__main__':
 			if target_type=='catch':
 				labjack_to_eeg_target_int = 36
 
-            if cue_target_oa == .7:
-                labjack_to_eeg_cue_int = labjack_to_eeg_cue_int + 40
-                labjack_to_eeg_target_int = labjack_to_eeg_target_int + 40
-            elif cue_target_oa == 1:
-                pass
+			if cue_target_oa == .7:
+				labjack_to_eeg_cue_int = labjack_to_eeg_cue_int + 40
+				labjack_to_eeg_target_int = labjack_to_eeg_target_int + 40
+			elif cue_target_oa == 1:
+				pass
 
 			labjack_to_tactamp_cue_on_bits = [0,0,0,0,0,0,0,0]
 			if cue_modality == 'visual':

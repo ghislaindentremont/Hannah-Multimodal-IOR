@@ -114,4 +114,88 @@ summarize_b = summary(b)
 print(summarize_b)
 source("get_ind_behav_resp_summaries.R")
 source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
+print("#
+R script that read in and summarizes participant behavioural data.#
+Get RT distribution, and exclusion proportions, and overall usable trial count.#
+")#
+#
+# libraries#
+library(grid)#
+library(gridExtra)#
+library(plyr)#
+library(ggplot2) #
+library(stringr)#
+#
+# directory#
+filedir = readline("Where is the txt file found? ")
+participant =
+"test"
+participant
+savedir = "/Users/ray/Desktop/Multimodal Quick Results"#
+#
+file_ls = list.files(#
+    path = filedir#
+    , pattern = participant#
+    , full.names = T #
+    , recursive = T#
+  )#
+#
+filename = file_ls[ grep(".txt", file_ls) ]
+filename
+a = read.table(filename, header = T)#
+#
+print("getting rid of practice trials...")#
+b = a[a$block != "practice",]
+summary(a)
+print("getting rid of practice trials...")#
+b = a[a$block != "practice",]#
+#
+summarize_b = summary(b)
+summarize_b
+hist(b$target_response_rt, breaks = 50)#
+abline(v = 100)#
+dev.copy(png, sprintf("%s/%s.png",savedir,participant))#
+dev.off()#
+#
+print("Proportion of blinks: ")#
+blink_prop = sum(b$critical_blink)/length(b$critical_blink)#
+print(blink_prop)#
+#
+print("Proportion of saccades: ")#
+sacc_prop = sum(b$critical_saccade)/length(b$critical_saccade)#
+print(sacc_prop)#
+#
+print("Proportion of pre target responses: ")#
+pre_prop = sum(b$pre_target_response)/length(b$pre_target_response)#
+print(pre_prop)
+b$keep = TRUE#
+b[b$pre_target_response,]$keep = FALSE#
+b[b$critical_saccade,]$keep = FALSE#
+b[b$critical_blink,]$keep = FALSE#
+b[b$target_type == "catch",]$keep = FALSE  # can't use these for analysis#
+b[is.na(b$target_response_rt),]$keep = FALSE#
+b[!is.na(b$target_response_rt) & b$target_response_rt < 100,]$keep = FALSE#
+print("Number of trials we began with: ")#
+init_num = nrow(b)#
+print(init_num)#
+#
+print("Number of usable trials left over after all exclusions: ")#
+usable_num = sum(b$keep)#
+print(usable_num)#
+#
+print("Proportion of trials we KEPT: ")#
+kept_prop_num = sum(b$keep)/nrow(b)#
+print(kept_prop_num)
+b
+nrow(b)
+sum(b$keep)
+kept_prop_num
 source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
+source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
+source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
+a
+summary(a)
+source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
+summary(a)
+a$cue_target_oa = factor(a$cue_target_oa)
+summary(a)
