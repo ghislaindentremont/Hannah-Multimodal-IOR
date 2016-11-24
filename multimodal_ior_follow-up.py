@@ -864,6 +864,7 @@ if __name__ == '__main__':
 									critical_blink = 'TRUE'
 									labjack.getFeedback(u3.PortStateWrite(State = [42,0,0]))
 								feedback_text = 'Blinked!'
+								
 							elif message=='gaze_target_lost':
 								saccade = 'TRUE'
 								now = get_time()
