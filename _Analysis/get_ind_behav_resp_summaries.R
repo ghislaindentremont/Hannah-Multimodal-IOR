@@ -17,10 +17,6 @@ filedir = readline("Where is the txt file found? ")
 # participant
 participant =readline("What is the participant id? ")
 
-# where to save info to later
-# savedir = readline("Where should I save results? ")
-savedir = "/Users/ray/Desktop/Multimodal Quick Results"
-
 file_ls = list.files(
     path = filedir
     , pattern = participant
@@ -87,5 +83,4 @@ df = data.frame(blink_prop
 	, kept_prop_num
 	)
 
-write.csv(df, file = sprintf("%s/%s.csv",savedir,participant))
 

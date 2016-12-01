@@ -191,8 +191,6 @@ nrow(b)
 sum(b$keep)
 kept_prop_num
 source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
-source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
-source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
 a
 summary(a)
 source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)

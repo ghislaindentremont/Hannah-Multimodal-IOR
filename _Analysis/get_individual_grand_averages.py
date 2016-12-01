@@ -23,10 +23,6 @@ filedir = raw_input("Where is the .eeg file found?\n>>> ")
 participant = raw_input("What is the participants id (e.g. e01)?\n>>> ")
 # participant = "e32"
 
-# later save to this dir
-# save_dir = raw_input("Where would you like this file to be saved?\n>>> ")
-save_dir = "/Users/ray/Desktop/Multimodal Quick Results"
-
 # change dir
 os.chdir(filedir)
 
@@ -47,16 +43,15 @@ event_id_all = {
     , 'RV/RV': 30
     , 'RT/LV': 32
     , 'RT/RV': 34
-
-    , 'LV/RT': 23
-    , 'LT/RT': 27
-    , 'RV/RT': 31
-    , 'RT/RT': 35
-
-    , 'LV/LT': 21
-    , 'LT/LT': 25
-    , 'RV/LT': 29
-    , 'RT/LT': 33
+    
+    , '700/LV/LV': 60
+    , '700/LV/RV': 62
+    , '700/LT/LV': 64
+    , '700/LT/RV': 66
+    , '700/RV/LV': 68
+    , '700/RV/RV': 70
+    , '700/RT/LV': 72
+    , '700/RT/RV': 74
 }
 tmin, tmax = -0.2, 0.5
 
@@ -177,9 +172,7 @@ picks = mne.pick_types(
     , meg = False
     , eeg = True
     , eog = False
-    , selection =
-    ['C3', 'C4'     # somatosensory (left/right)
-    , 'PO7', 'PO8']  # occipital(left/right)
+    , selection = ['PO7', 'PO8']  # occipital(left/right)
     )
 
 # apply filter
@@ -198,7 +191,7 @@ raw.filter(
 #---------------------------------- Notch Filter --------------------------------------------#
 # apply notch
 raw.notch_filter(
-    np.arange(60,121,60)  # get 60 and 120 Hz
+    60  # get 60 
     , picks=picks
     # , n_jobs = 4
     )
@@ -262,151 +255,34 @@ def get_evoked(raw, event_id, channel_name, tmin, tmax, reject_num, baseline=(-0
     else:
         to_return = epochs
     return to_return
-
-
-def concatenate_epochs(epoch1, epoch2, ch_name, reversal=False):
-    epoch1_arr = epoch1.get_data()
-    epoch2_arr = epoch2.get_data()
-    comb_arr = np.concatenate([epoch1_arr, epoch2_arr])
-    comb_arr_sum = np.zeros(len(comb_arr[0][0]))
-    for idx in range(0, len(comb_arr)):
-        temp = comb_arr[idx][0]
-        comb_arr_sum = comb_arr_sum + temp
-    comb_arr_avg = np.array([comb_arr_sum / len(comb_arr)])  # get type 2d array
-    if reversal:
-        comb_arr_avg = comb_arr_avg * (-1)
-    info_comb = mne.create_info(
-        ch_names=[ch_name]
-        , sfreq=epoch1.info['sfreq']
-        , ch_types='eeg'
-    )
-    evoked = mne.EvokedArray(comb_arr_avg, info_comb, tmin=tmin)
-    # evoked.plot()
-    return evoked
-
-
+    
+    
 
 
 ##############################################################################################
 ####                          Visual Grand Average                                        ####
 ##############################################################################################
 
-vis_id = {
-'LV/LV': 20
-, 'LV/RV': 22
-, 'LT/LV': 24
-, 'LT/RV': 26
-, 'RV/LV': 28
-, 'RV/RV': 30
-, 'RT/LV': 32
-, 'RT/RV': 34
-}
 
-evoked_grand_avg_vis = get_evoked( raw, vis_id, ['PO7','PO8'], tmin, tmax, reject_num = 100e-6 )
+evoked_grand_avg_vis = get_evoked( raw, event_id_all, ['PO7','PO8'], tmin, tmax, reject_num = 100e-6 )
 # evoked_grand_avg_vis.plot()
 grand_avg_vis = evoked_grand_avg_vis.data[0]
 
 
-
-##############################################################################################
-####                          Tactile Grand Average                                       ####
-##############################################################################################
-
-#---------------------------------- Left/Contra ---------------------------------------------#
-tact_LC_id = {
-'LV/LT': 21
-, 'LT/LT': 25
-, 'RV/LT': 29
-, 'RT/LT': 33
-}
-epochs_LC_tact = get_evoked( raw, tact_LC_id, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-#---------------------------------- Left/Contra ---------------------------------------------#
-
-
-#---------------------------------- Right/Contra --------------------------------------------#
-tact_RC_id = {
-'LV/RT': 23
-, 'LT/RT': 27
-, 'RV/RT': 31
-, 'RT/RT': 35
-}
-epochs_RC_tact = get_evoked( raw, tact_RC_id, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-#---------------------------------- Right/Contra --------------------------------------------#
-
-
-#---------------------------------- Concatenate ---------------------------------------------#
-evoked_contra = concatenate_epochs(epochs_RC_tact, epochs_LC_tact, 'contra')
-#---------------------------------- Concatenate ---------------------------------------------#
-
-
-#---------------------------------- Left/Ipsi -----------------------------------------------#
-tact_LI_id = {
-'LV/LT': 21
-, 'LT/LT': 25
-, 'RV/LT': 29
-, 'RT/LT': 33
-}
-epochs_LI_tact = get_evoked( raw, tact_LI_id, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-#---------------------------------- Left/Ipsi -----------------------------------------------#
-
-
-#---------------------------------- Right/Ipsi ----------------------------------------------#
-tact_RI_id = {
-'LV/RT': 23
-, 'LT/RT': 27
-, 'RV/RT': 31
-, 'RT/RT': 35
-}
-epochs_RI_tact = get_evoked( raw, tact_RI_id, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-#---------------------------------- Right/Ipsi ----------------------------------------------#
-
-
-#---------------------------------- Concatenate ---------------------------------------------#
-evoked_ipsi = concatenate_epochs(epochs_RI_tact, epochs_LI_tact, 'ipsi', reversal = True)
-#---------------------------------- Concatenate ---------------------------------------------#
-
-
-#-------------------------------- Join Ipsi/Contra ------------------------------------------#
-# average channels
-tact_avg = np.array( [(evoked_ipsi.data[0] + evoked_contra.data[0])/2] )  # get form (n_channel, n_times)
-info_tact = mne.create_info(
-    ch_names = ['Avg C4 & C3']
-    , sfreq = raw.info['sfreq']
-    , ch_types = 'eeg'
-    )
-evoked_grand_avg_tact = mne.EvokedArray(tact_avg, info_tact, tmin=tmin)
-# evoked_grand_avg_tact.plot()
-grand_avg_tact = evoked_grand_avg_tact.data[0]
-#-------------------------------- Join Ipsi/Contra ------------------------------------------#
-
-
-#------------------------------------ Plot Both ---------------------------------------------#
+#---------------------------------------- Plot ---------------------------------------------#
 X = np.linspace(-200, 500, 701)
 
-f, ax = plt.subplots(1,2, sharex = True, sharey = True)
-
-f.add_subplot(111, frameon = False)
+plt.subplot(1,1,1)
 
 # hide tick and tick label of the big axes
 plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 plt.xlabel("time (ms)")
 plt.ylabel("voltage (V)", labelpad = 15)
 
-ax[0].plot(X, grand_avg_vis)
-ax[0].axhline(y=0, color = 'black')
-ax[0].axvline(x=0, linestyle='dashed', color = 'black')
-ax[0].set_title('visual target')
-
-ax[1].plot(X, grand_avg_tact)
-ax[1].axhline(y=0, color = 'black')
-ax[1].axvline(x=0, linestyle='dashed', color = 'black')
-ax[1].set_title('tactile target')
-
-ax[1].set_ylim(ax[1].get_ylim()[::-1])
-ax[1].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-
-plt.savefig( '%squick_grand_averages_%s.png'%(save_dir,participant) )
+plt.plot(X, grand_avg_vis)
+plt.axhline(y=0, color = 'black')
+plt.axvline(x=0, linestyle='dashed', color = 'black')
+plt.set_title('visual target')
 
 plt.show()
-#------------------------------------ Plot Both ---------------------------------------------#
-
+#---------------------------------------- Plot ---------------------------------------------#

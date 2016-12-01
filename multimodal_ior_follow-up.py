@@ -648,24 +648,24 @@ if __name__ == '__main__':
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 20
 						else:
-							labjack_to_eeg_target_int = 21
+							raise Exception('Unknown target type')
 					else:
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 22
 						else:
-							labjack_to_eeg_target_int = 23
+							raise Exception('Unknown target type')
 				else:
 					labjack_to_eeg_cue_int = 11
 					if target_location=='left':
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 24
 						else:
-							labjack_to_eeg_target_int = 25
+							raise Exception('Unknown target type')
 					else:
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 26
 						else:
-							labjack_to_eeg_target_int = 27
+							raise Exception('Unknown target type')
 			else:
 				if cue_modality == 'visual':
 					labjack_to_eeg_cue_int = 12
@@ -673,24 +673,24 @@ if __name__ == '__main__':
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 28
 						else:
-							labjack_to_eeg_target_int = 29
+							raise Exception('Unknown target type')
 					else:
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 30
 						else:
-							labjack_to_eeg_target_int = 31
+							raise Exception('Unknown target type')
 				else:
 					labjack_to_eeg_cue_int = 13
 					if target_location=='left':
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 32
 						else:
-							labjack_to_eeg_target_int = 33
+							raise Exception('Unknown target type')
 					else:
 						if target_modality=='visual':
 							labjack_to_eeg_target_int = 34
 						else:
-							labjack_to_eeg_target_int = 35
+							raise Exception('Unknown target type')
 			if target_type=='catch':
 				labjack_to_eeg_target_int = 36
 
@@ -699,6 +699,8 @@ if __name__ == '__main__':
 				labjack_to_eeg_target_int = labjack_to_eeg_target_int + 40
 			elif cue_target_oa == 1:
 				pass
+			else:
+				raise Exception('Unknown CTOA length')
 
 			labjack_to_tactamp_cue_on_bits = [0,0,0,0,0,0,0,0]
 			if cue_modality == 'visual':
@@ -722,10 +724,8 @@ if __name__ == '__main__':
 					else:
 						labjack_to_tactamp_target_on_bits[right_led_num-8] = 1
 				else:
-					if target_location=='left':
-						labjack_to_tactamp_target_on_bits[left_tact_num-8] = 1
-					else:
-						labjack_to_tactamp_target_on_bits[right_tact_num-8] = 1
+					raise Exception('Unknown target type')
+					
 			labjack_to_tactamp_target_on_bits_int = int(''.join(map(str,labjack_to_tactamp_target_on_bits[::-1])),2)
 
 			#make sure all the labjack outputs are off
