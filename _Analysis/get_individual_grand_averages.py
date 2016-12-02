@@ -27,10 +27,12 @@ participant = raw_input("What is the participants id (e.g. e01)?\n>>> ")
 os.chdir(filedir)
 
 # for one participant
-raw = mne.io.read_raw_brainvision('multimodal_ior_%s.vhdr' % participant, preload = True)
+raw = mne.io.read_raw_brainvision('multimodal_ior_follow_up_%s.vhdr' % participant, preload = True)
 
 # remove Aux
 raw.drop_channels(['Aux1']) # AUX = microsensor
+if  'Aux2' in raw.info['ch_names']:
+    raw.drop_channels(['Aux2', 'Aux3', 'Aux4', 'Aux5', 'Aux6', 'Aux7', 'Aux8'])
 
 events = mne.find_events(raw, stim_channel = 'STI 014', output = 'onset')
 picks_all = mne.pick_types(raw.info, meg=False, eeg=True, eog=False, exclude='bads')
@@ -262,27 +264,65 @@ def get_evoked(raw, event_id, channel_name, tmin, tmax, reject_num, baseline=(-0
 ##############################################################################################
 ####                          Visual Grand Average                                        ####
 ##############################################################################################
+vis_1000ms_id = {
+    'LV/LV': 20
+    , 'LV/RV': 22
+    , 'LT/LV': 24
+    , 'LT/RV': 26
+    , 'RV/LV': 28
+    , 'RV/RV': 30
+    , 'RT/LV': 32
+    , 'RT/RV': 34
+    }
 
-
-evoked_grand_avg_vis = get_evoked( raw, event_id_all, ['PO7','PO8'], tmin, tmax, reject_num = 100e-6 )
+evoked_grand_avg_vis_1000ms = get_evoked( raw, vis_1000ms_id, ['PO7','PO8'], tmin, tmax, reject_num = 100e-6 )
 # evoked_grand_avg_vis.plot()
-grand_avg_vis = evoked_grand_avg_vis.data[0]
+grand_avg_vis_1000ms = evoked_grand_avg_vis_1000ms.data[0]
+
+vis_700ms_id = {
+    '700/LV/LV': 60
+    , '700/LV/RV': 62
+    , '700/LT/LV': 64
+    , '700/LT/RV': 66
+    , '700/RV/LV': 68
+    , '700/RV/RV': 70
+    , '700/RT/LV': 72
+    , '700/RT/RV': 74
+    }
+
+evoked_grand_avg_vis_700ms = get_evoked( raw, vis_700ms_id, ['PO7','PO8'], tmin, tmax, reject_num = 100e-6 )
+# evoked_grand_avg_vis.plot()
+grand_avg_vis_700ms = evoked_grand_avg_vis_700ms.data[0]
 
 
 #---------------------------------------- Plot ---------------------------------------------#
-X = np.linspace(-200, 500, 701)
+samps = np.shape(grand_avg_vis_1000ms)[0]
+X = np.linspace(-200, 500, samps) # 701
 
-plt.subplot(1,1,1)
+f, ax = plt.subplots(1,2, sharex = True, sharey = True)
+
+f.add_subplot(111, frameon = False)
 
 # hide tick and tick label of the big axes
 plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 plt.xlabel("time (ms)")
 plt.ylabel("voltage (V)", labelpad = 15)
 
-plt.plot(X, grand_avg_vis)
-plt.axhline(y=0, color = 'black')
-plt.axvline(x=0, linestyle='dashed', color = 'black')
-plt.set_title('visual target')
+ax[0].plot(X, grand_avg_vis_1000ms)
+ax[0].axhline(y=0, color = 'black')
+ax[0].axvline(x=0, linestyle='dashed', color = 'black')
+ax[0].set_title('1000 ms CTOA')
+
+ax[1].plot(X, grand_avg_vis_700ms)
+ax[1].axhline(y=0, color = 'black')
+ax[1].axvline(x=0, linestyle='dashed', color = 'black')
+ax[1].set_title('700 ms CTOA')
+
+ax[1].set_ylim(ax[1].get_ylim()[::-1])
+ax[1].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+
+plt.gca().invert_yaxis()
 
 plt.show()
 #---------------------------------------- Plot ---------------------------------------------#
+
