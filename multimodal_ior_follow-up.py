@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	edf_path = './'
 	saccade_sound_file = '_Stimuli/stop.wav'
 	blink_sound_file = '_Stimuli/stop.wav'
-	calibration_dot_size_in_degrees = .5
+	calibration_dot_size_in_degrees = 2
 	gaze_target_criterion_in_degrees = 2
 
 	
