@@ -197,3 +197,5 @@ source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav
 summary(a)
 a$cue_target_oa = factor(a$cue_target_oa)
 summary(a)
+source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)
+source('/Volumes/Experiments/MMIOR/Hannah-Multimodal-IOR/_Analysis/get_ind_behav_resp_summaries.R', chdir = TRUE)

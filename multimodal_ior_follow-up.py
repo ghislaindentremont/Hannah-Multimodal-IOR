@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	edf_path = './'
 	saccade_sound_file = '_Stimuli/stop.wav'
 	blink_sound_file = '_Stimuli/stop.wav'
-	calibration_dot_size_in_degrees = 2
+	calibration_dot_size_in_degrees = 0.5
 	gaze_target_criterion_in_degrees = 2
 
 	
@@ -193,6 +193,7 @@ if __name__ == '__main__':
 		eyelink_child.initDict['stim_display_res'] = stim_display_res
 		eyelink_child.initDict['calibration_display_size'] = [int(stim_display_res[0]/2),int(stim_display_res[1]/2)]
 		eyelink_child.initDict['calibration_dot_size'] = int(calibration_dot_size)
+		eyelink_child.initDict['gaze_target_criterion_in_degrees'] = int(gaze_target_criterion_in_degrees)
 		eyelink_child.initDict['eyelink_ip'] = eyelink_ip
 		eyelink_child.initDict['edf_file_name'] = edf_file_name
 		eyelink_child.initDict['edf_path'] = edf_path
