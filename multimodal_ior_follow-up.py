@@ -193,7 +193,7 @@ if __name__ == '__main__':
 		eyelink_child.initDict['stim_display_res'] = stim_display_res
 		eyelink_child.initDict['calibration_display_size'] = [int(stim_display_res[0]/2),int(stim_display_res[1]/2)]
 		eyelink_child.initDict['calibration_dot_size'] = int(calibration_dot_size)
-		eyelink_child.initDict['gaze_target_criterion_in_degrees'] = int(gaze_target_criterion_in_degrees)
+		eyelink_child.initDict['gaze_target_criterion'] = int(gaze_target_criterion)
 		eyelink_child.initDict['eyelink_ip'] = eyelink_ip
 		eyelink_child.initDict['edf_file_name'] = edf_file_name
 		eyelink_child.initDict['edf_path'] = edf_path

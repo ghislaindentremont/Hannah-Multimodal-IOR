@@ -7,7 +7,7 @@ qTo
 , stim_display_position = [1920,0]
 , calibration_display_size = [1920,1080]
 , calibration_dot_size = 10
-, gaze_target_criterion_in_degrees = 2
+, gaze_target_criterion = 10
 , eyelink_ip = '100.1.1.1'
 , edf_file_name = 'temp.edf'
 , edf_path = './_Data/temp.edf'
@@ -284,7 +284,7 @@ qTo
 	pylink.openGraphicsEx(custom_display)
 	new_gaze_target = False
 	gaze_target = numpy.array(calibration_display_size)/2.0
-	gaze_target_criterion = gaze_target_criterion_in_degrees
+	# gaze_target_criterion = gaze_target_criterion
 	do_sounds = False
 	report_saccades = False
 	report_blinks = False
