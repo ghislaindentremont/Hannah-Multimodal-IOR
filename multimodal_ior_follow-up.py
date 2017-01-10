@@ -155,6 +155,10 @@ if __name__ == '__main__':
 	fixation_size = fixation_size_in_degrees*PPD
 	gaze_target_criterion = gaze_target_criterion_in_degrees*PPD
 
+	# print ['PPD', PPD]
+	# print ['calibration dot', calibration_dot_size]
+	# print ['gaze target criterion', gaze_target_criterion]
+
 	########
 	# Initialize fonts
 	########
@@ -191,7 +195,7 @@ if __name__ == '__main__':
 		eyelink_child.initDict['window_position'] = eyelink_window_position
 		eyelink_child.initDict['stim_display_position'] = stim_display_position
 		eyelink_child.initDict['stim_display_res'] = stim_display_res
-		eyelink_child.initDict['calibration_display_size'] = [int(stim_display_res[0]/2),int(stim_display_res[1]/2)]
+		eyelink_child.initDict['calibration_display_size'] = [int(stim_display_res[0]),int(stim_display_res[1])]
 		eyelink_child.initDict['calibration_dot_size'] = int(calibration_dot_size)
 		eyelink_child.initDict['gaze_target_criterion'] = int(gaze_target_criterion)
 		eyelink_child.initDict['eyelink_ip'] = eyelink_ip
@@ -864,7 +868,7 @@ if __name__ == '__main__':
 								if (now>cue_start_time) and (now<(target_on_time+.3)):
 									critical_blink = 'TRUE'
 									labjack.getFeedback(u3.PortStateWrite(State = [42,0,0]))
-								# feedback_text = 'Blinked!'
+								feedback_text = 'Blinked!'
 								
 							elif message=='gaze_target_lost':
 								saccade = 'TRUE'
@@ -873,7 +877,7 @@ if __name__ == '__main__':
 								if (now>cue_start_time) and (now<(target_on_time+.3)):
 									critical_saccade = 'TRUE'
 									labjack.getFeedback(u3.PortStateWrite(State = [43,0,0]))
-								# feedback_text = 'Eyes moved!'
+								feedback_text = 'Eyes moved!'
 				# This code recycles trials during practice only. 
 				# Getting rid of if-statement will recycle all trials  	
 							# if block == 'practice':	
