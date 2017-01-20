@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	saccade_sound_file = '_Stimuli/stop.wav'
 	blink_sound_file = '_Stimuli/stop.wav'
 	calibration_dot_size_in_degrees = 0.5
-	gaze_target_criterion_in_degrees = 2
+	gaze_target_criterion_in_degrees = 1
 
 	
 	cue_modality_list = ['visual','tactile']
@@ -872,10 +872,12 @@ if __name__ == '__main__':
 								
 							elif message=='gaze_target_lost':
 								saccade = 'TRUE'
+								# print('saccade')
 								now = get_time()
 								labjack.getFeedback(u3.PortStateWrite(State = [41,0,0]))
 								if (now>cue_start_time) and (now<(target_on_time+.3)):
 									critical_saccade = 'TRUE'
+									# print('critical saccade')
 									labjack.getFeedback(u3.PortStateWrite(State = [43,0,0]))
 								feedback_text = 'Eyes moved!'
 				# This code recycles trials during practice only. 

@@ -284,9 +284,6 @@ qTo
 	pylink.openGraphicsEx(custom_display)
 	new_gaze_target = False
 	gaze_target = numpy.array(calibration_display_size)/2.0
-	# print ['gaze target', gaze_target]
-	# print ['child gaze criterion', gaze_target_criterion]
-	# gaze_target_criterion = gaze_target_criterion
 	do_sounds = False
 	report_saccades = False
 	report_blinks = False
@@ -366,21 +363,18 @@ qTo
 				gaze_end = eye_sample.getEndGaze()
 				# print ['eyelink: saccade',gaze_start,gaze_end,gaze_target]
 				if (gaze_start[0]!=-32768.0) & (gaze_end[0]!=-32768.0):
-					#print ['gaze end', gaze_end]
-					#print ['gaze_target', gaze_target]
 					gaze_dist_from_gaze_target = numpy.linalg.norm(numpy.array(gaze_end)-gaze_target)
-					#print ['distance', gaze_dist_from_gaze_target]
+					# print ['distance', gaze_dist_from_gaze_target]
+					# print ['criterion', gaze_target_criterion]
 					if gaze_dist_from_gaze_target<1000:
 						if new_gaze_target:
 							if gaze_dist_from_gaze_target<gaze_target_criterion:
-								# print ['gaze_target_met',gaze_end,gaze_target_criterion,gaze_target,gaze_dist_from_gaze_target]
 								qFrom.put(['gaze_target_met',gaze_target])
 								new_gaze_target = False
 						elif gaze_dist_from_gaze_target>gaze_target_criterion:
 							if report_saccades:
 								qFrom.put('gaze_target_lost')
-								#print ['gaze distance from target',gaze_dist_from_gaze_target]
-								#print ['gaze target criterion', gaze_target_criterion]
+								# print ['gaze target lost']
 							if (not saccade_sound.still_playing()) and (not blink_sound.still_playing()):
 								if do_sounds:
 									saccade_sound.play()
