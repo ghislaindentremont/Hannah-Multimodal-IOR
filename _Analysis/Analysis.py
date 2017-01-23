@@ -5,22 +5,100 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import fnmatch
 
-os.chdir("/Volumes/Seagate Backup Plus Drive/Experiments/multimodal_ior/_Data/forMNE")
-# os.chdir("/Users/ghislaindentremont/Downloads/e49")
+
+
+##############################################################################################
+####                   Create Functions for vmrk Clean-Up                                 ####
+##############################################################################################
+
+def get_number_string(lyne):
+    if line == '':
+        number_str = "1"  # to get out of bottom while loop when file complete
+    else:
+        number_str = lyne.replace(' ', '').split(',')[1].strip().strip('S').strip('R')  # this takes the number
+    return(number_str)
+
+
+def do_vmrk_clean_up(participant):
+
+    filedir = "/Volumes/LaCie/Experiments/MMIOR/Hannah/_Data/forMNE"
+
+    filename = "multimodal_ior_follow_up_%s.vmrk" % participant
+
+    os.chdir(filedir)  # change to file's folder
+
+    # rename original it hasn't already been 'cleaned up'
+    already_done = os.path.isfile("original_vmrks/original_" + filename)
+
+    if not already_done:
+        os.rename(filename, "original_vmrks/original_" + filename)
+
+        newFile = open(filename, "w")  # open file in which error-free vmrk info will be put in
+        oldFile = open("original_vmrks/original_" + filename, 'r')
+        done = False
+        dataStarted = False
+
+        def get_number_string(lyne):
+            if line == '':
+                number_str = "1"  # to get out of bottom while loop when file complete
+            else:
+                number_str = lyne.replace(' ', '').split(',')[1].strip().strip('S').strip('R')  # this takes the number
+            return (number_str)
+
+        while not done:
+            if not dataStarted:
+                line = oldFile.readline()
+                if line[0:3] == "Mk2":
+                    dataStarted = True
+                    number_string = get_number_string(line)
+                else:
+                    newFile.write(line)
+            if dataStarted:
+                if line == '':
+                    done = True
+                else:
+                    if number_string == "1":
+                        lines = line
+                        line = oldFile.readline()
+                        number_string = get_number_string(line)
+                        while number_string != "1":
+                            if number_string in ["99", "98", "97", "43", "42"]:
+                                break
+                            else:
+                                lines += line
+                            line = oldFile.readline()
+                            number_string = get_number_string(line)
+                        if number_string == "1":
+                            newFile.write(lines)
+                        else:
+                            while number_string != "1":
+                                line = oldFile.readline()
+                                number_string = get_number_string(line)
+                    else:
+                        print("ERROR")
+
+        newFile.close()
+        oldFile.close()
+    else:
+        print("I HAVE ALREADY 'CLEANED UP' THIS FILE")
+
+
 
 ##############################################################################################
 ####                                Load Data                                             ####
 ##############################################################################################
 
 # Participant
-participants = ['e02', 'e12', 'e16', 'e17', 'e20', 'e22', 'e27', 'e03', 'e04', 'e05', 'e06', 'p06', 'e40', 'e41', 'e42', 'e44', 'e45', 'e46', 'e47']
-# , 'e48', 'e49'
-
-# participant = 'e49'
+# participants = ['e01','e02','e03']
+participants = ['e02','e03']
 
 dont_plot = True
 
 for participant in participants:
+
+    do_vmrk_clean_up(participant)
+
+    os.chdir("/Volumes/LaCie/Experiments/MMIOR/Hannah/_Data")
 
     for root, dirs, files in os.walk(".", topdown=False):
         for name in files:
@@ -28,10 +106,9 @@ for participant in participants:
                 file = os.path.join(root, name)
 
     # for one participant
-    # raw = mne.io.read_raw_brainvision('multimodal_ior_%s.vhdr' % participant, preload = True)
     raw = mne.io.read_raw_brainvision(file, preload=True)
 
-    directory = '/Users/ghislaindentremont/Documents/Multimodal_IOR/Ghis/P_analysis3/%s'%participant
+    directory = '/Users/ghislaindentremont/Documents/Experiments/Multimodal_IOR/Hannah/P_analysis/%s'%participant
     if not os.path.exists(directory):
         os.makedirs(directory)
     if not os.path.exists('%s/P_preprocessing'%directory):
@@ -48,7 +125,7 @@ for participant in participants:
 
 
     #--------------------------------- Look for bad channels ------------------------------------#
-    raw.plot(n_channels = 64, scalings = dict(eeg = 100e-6), show = False)
+    raw.plot(n_channels = 64, scalings = dict(eeg = 500e-6), show = False)  # AT 5 uV scale
     plt.savefig('%s/P_preprocessing/raw_waveforms_%s.png'%(directory, participant) )
     if dont_plot:
         plt.close()
@@ -76,15 +153,14 @@ for participant in participants:
         , 'RT/LV': 32
         , 'RT/RV': 34
 
-        , 'LV/RT': 23
-        , 'LT/RT': 27
-        , 'RV/RT': 31
-        , 'RT/RT': 35
-
-        , 'LV/LT': 21
-        , 'LT/LT': 25
-        , 'RV/LT': 29
-        , 'RT/LT': 33
+        , '700/LV/LV': 60
+        , '700/LV/RV': 62
+        , '700/LT/LV': 64
+        , '700/LT/RV': 66
+        , '700/RV/LV': 68
+        , '700/RV/RV': 70
+        , '700/RT/LV': 72
+        , '700/RT/RV': 74
     }
     tmin, tmax = -0.2, 0.5
     epochs_params_all = dict(picks = picks_all, events=events, event_id=event_id_all, tmin=tmin, tmax=tmax)
@@ -107,53 +183,9 @@ for participant in participants:
 
 
     #--------------------------------- Label Bad for each P -------------------------------------#
-    if participant == "e12":
+    if participant == "e01":
         raw.info['bads'] = []
     elif participant == "e02":
-        raw.info['bads'] = []
-    elif participant == "e03":
-        raw.info['bads'] = []
-    elif participant == "e40":
-        raw.info['bads'] = ['Ch43']
-    elif participant == "e39":
-        raw.info['bads'] = ['Ch43']
-    elif participant == "e38":
-        raw.info['bads'] = ['Ch9']
-    elif participant == "e03":
-        raw.info['bads'] = []
-    elif participant == "e04":
-        raw.info['bads'] = []
-    elif participant == "e05":
-        raw.info['bads'] = []
-    elif participant == "e06":
-        raw.info['bads'] = []
-    elif participant == "p06":
-        raw.info['bads'] = []
-    elif participant == "e16":
-        raw.info['bads'] = []
-    elif participant == "e17":
-        raw.info['bads'] = []
-    elif participant == "e20":
-        raw.info['bads'] = []
-    elif participant == "e22":
-        raw.info['bads'] = []
-    elif participant == "e27":
-        raw.info['bads'] = []
-    elif participant == "e42":
-        raw.info['bads'] = ['Ch43']
-    elif participant == "e41":
-        raw.info['bads'] = ['Ch43']
-    elif participant == "e45":
-        raw.info['bads'] = []
-    elif participant == "e46":
-        raw.info['bads'] = []
-    elif participant == "e47":
-        raw.info['bads'] = ['Ch41']
-    elif participant == "e48":
-        raw.info['bads'] = ['Ch41']
-    elif participant == "e44":
-        raw.info['bads'] = ['Ch41']
-    elif participant == "e49":
         raw.info['bads'] = []
     #--------------------------------- Label Bad for each P -------------------------------------#
 
@@ -257,68 +289,6 @@ for participant in participants:
 
 
 
-    ##############################################################################################
-    ####                                    Filters                                           ####
-    ##############################################################################################
-
-    #---------------------------------- Butterworth Filter --------------------------------------#
-    # Pick a subset of channels
-    picks = mne.pick_types(
-        raw.info
-        , meg = False
-        , eeg = True
-        , eog = False
-        , selection =
-        ['C3', 'C4'     # somatosensory (left/right)
-        , 'PO7', 'PO8']  # occipital(left/right)
-        )
-
-    # without filter
-    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (1,0,0), show = False)
-    plt.savefig('%s/P_preprocessing/psd_pre_bandpass_%s.png'%(directory, participant) )
-    if dont_plot:
-        plt.close()
-
-    # apply filter
-    # applies zero-phase bandpass filter (default is 4th order butterworth, but using 2nd order here)
-    iir_params = dict(order=2, ftype='butter')
-    raw.filter(
-        .1
-        , 50
-        , picks=picks
-        , method = 'iir'
-        , iir_params = iir_params
-        , n_jobs = 4
-    )
-    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (0,1,0), show = False)
-    plt.savefig('%s/P_preprocessing/psd_post_bandpass_%s.png'%(directory, participant) )
-    if dont_plot:
-        plt.close()
-    #---------------------------------- Butterworth Filter --------------------------------------#
-
-
-    #---------------------------------- Notch Filter --------------------------------------------#
-    # without filter
-    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (1,0,0), show = False)
-    plt.savefig('%s/P_preprocessing/psd_pre_notch_%s.png'%(directory, participant) )
-    if dont_plot:
-        plt.close()
-
-    # apply notch
-    # zero phase notch filter
-    raw.notch_filter(
-        60
-        , picks=picks
-        , n_jobs = 4
-        )
-    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (0,1,0), show = False)
-    plt.savefig('%s/P_preprocessing/psd_post_notch_%s.png'%(directory, participant) )
-    if dont_plot:
-        plt.close()
-    #---------------------------------- Notch Filter --------------------------------------------#
-
-
-
 
     ##############################################################################################
     ####                                Re-Reference                                          ####
@@ -374,6 +344,69 @@ for participant in participants:
 
 
     ##############################################################################################
+    ####                                    Filters                                           ####
+    ##############################################################################################
+
+    #---------------------------------- Butterworth Filter --------------------------------------#
+    # Pick a subset of channels
+    picks = mne.pick_types(
+        raw.info
+        , meg = False
+        , eeg = True
+        , eog = False
+        , selection =
+        [ 'PO7', 'PO8']  # occipital(left/right)
+        )
+
+    # without filter
+    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (1,0,0), show = False)
+    plt.savefig('%s/P_preprocessing/psd_pre_bandpass_%s.png'%(directory, participant) )
+    if dont_plot:
+        plt.close()
+
+    # apply filter
+    # applies zero-phase bandpass filter (default is 4th order butterworth, but using 2nd order here)
+    iir_params = dict(order=2, ftype='butter')
+    raw.filter(
+        .1
+        , 50
+        , picks=picks
+        , method = 'iir'
+        , iir_params = iir_params
+        , n_jobs = 4
+    )
+    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (0,1,0), show = False)
+    plt.savefig('%s/P_preprocessing/psd_post_bandpass_%s.png'%(directory, participant) )
+    if dont_plot:
+        plt.close()
+    #---------------------------------- Butterworth Filter --------------------------------------#
+
+
+    #---------------------------------- Notch Filter --------------------------------------------#
+    # without filter
+    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (1,0,0), show = False)
+    plt.savefig('%s/P_preprocessing/psd_pre_notch_%s.png'%(directory, participant) )
+    if dont_plot:
+        plt.close()
+
+    # apply notch
+    # zero phase notch filter
+    raw.notch_filter(
+        60
+        , picks=picks
+        , n_jobs = 4
+        )
+    raw.plot_psd(area_mode='range', tmax=10.0, picks=picks, color = (0,1,0), show = False)
+    plt.savefig('%s/P_preprocessing/psd_post_notch_%s.png'%(directory, participant) )
+    if dont_plot:
+        plt.close()
+    #---------------------------------- Notch Filter --------------------------------------------#
+
+
+
+
+
+    ##############################################################################################
     ####                                   Functions                                          ####
     ##############################################################################################
 
@@ -407,10 +440,10 @@ for participant in participants:
             # percentage rejected by channel
             if not dont_plot:
                 epochs.plot_drop_log()
-                plt.savefig('%s/P_AR/%s_%s_%s_drop_log_%s.png' % (directory, channel_name[0], list(event_id)[0][0:2], list(event_id)[0][3:5], participant))
+                plt.savefig('%s/P_AR/%s_%s_drop_log_%s.png' % (directory, channel_name[0], list(event_id)[0][0:2], participant))
             # # visualize by channel, by epoch
             # epochs.plot()
-            f = open('%s/P_AR/%s_%s_%s_AR_output_%s.txt' % (directory, channel_name[0], list(event_id)[0][0:2], list(event_id)[0][3:5], participant), 'w')
+            f = open('%s/P_AR/%s_%s_AR_output_%s.txt' % (directory, channel_name[0], list(event_id)[0][0:2], participant), 'w')
             # get percentage of epochs dropped
             f.write("Total number of epochs: ")
             f.write(str(len(epochs)))
@@ -472,126 +505,71 @@ for participant in participants:
     ####                          Visual Grand Average                                        ####
     ##############################################################################################
 
-    vis_id = {
-    'LV/LV': 20
-    , 'LV/RV': 22
-    , 'LT/LV': 24
-    , 'LT/RV': 26
-    , 'RV/LV': 28
-    , 'RV/RV': 30
-    , 'RT/LV': 32
-    , 'RT/RV': 34
+    vis_1000ms_id = {
+        'LV/LV': 20
+        , 'LV/RV': 22
+        , 'LT/LV': 24
+        , 'LT/RV': 26
+        , 'RV/LV': 28
+        , 'RV/RV': 30
+        , 'RT/LV': 32
+        , 'RT/RV': 34
     }
 
-    evoked_grand_avg_vis = get_evoked( raw, vis_id, ['PO7','PO8'], tmin, tmax, reject_num = 100e-6, save_AR=False)
+    evoked_grand_avg_vis_1000ms = get_evoked(raw, vis_1000ms_id, ['PO7', 'PO8'], tmin, tmax, reject_num=100e-6)
     # evoked_grand_avg_vis.plot()
-    grand_avg_vis = evoked_grand_avg_vis.data[0]
+    grand_avg_vis_1000ms = evoked_grand_avg_vis_1000ms.data[0]
 
-
-
-    ##############################################################################################
-    ####                          Tactile Grand Average                                       ####
-    ##############################################################################################
-
-    #---------------------------------- Left/Contra ---------------------------------------------#
-    tact_LC_id = {
-    'LV/LT': 21
-    , 'LT/LT': 25
-    , 'RV/LT': 29
-    , 'RT/LT': 33
+    vis_700ms_id = {
+        '700/LV/LV': 60
+        , '700/LV/RV': 62
+        , '700/LT/LV': 64
+        , '700/LT/RV': 66
+        , '700/RV/LV': 68
+        , '700/RV/RV': 70
+        , '700/RT/LV': 72
+        , '700/RT/RV': 74
     }
-    epochs_LC_tact = get_evoked( raw, tact_LC_id, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False, save_AR=False )
-    #---------------------------------- Left/Contra ---------------------------------------------#
+
+    evoked_grand_avg_vis_700ms = get_evoked(raw, vis_700ms_id, ['PO7', 'PO8'], tmin, tmax, reject_num=100e-6)
+    # evoked_grand_avg_vis.plot()
+    grand_avg_vis_700ms = evoked_grand_avg_vis_700ms.data[0]
 
 
-    #---------------------------------- Right/Contra --------------------------------------------#
-    tact_RC_id = {
-    'LV/RT': 23
-    , 'LT/RT': 27
-    , 'RV/RT': 31
-    , 'RT/RT': 35
-    }
-    epochs_RC_tact = get_evoked( raw, tact_RC_id, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False, save_AR=False )
-    #---------------------------------- Right/Contra --------------------------------------------#
+    # ---------------------------------------- Plot ---------------------------------------------#
+    samps = np.shape(grand_avg_vis_1000ms)[0]
+    X = np.linspace(-200, 500, samps)  # 701
 
+    f, ax = plt.subplots(1, 2, sharex=True, sharey=True)
 
-    #---------------------------------- Concatenate ---------------------------------------------#
-    evoked_contra = concatenate_epochs(epochs_RC_tact, epochs_LC_tact, 'contra')
-    #---------------------------------- Concatenate ---------------------------------------------#
-
-
-    #---------------------------------- Left/Ipsi -----------------------------------------------#
-    tact_LI_id = {
-    'LV/LT': 21
-    , 'LT/LT': 25
-    , 'RV/LT': 29
-    , 'RT/LT': 33
-    }
-    epochs_LI_tact = get_evoked( raw, tact_LI_id, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False, save_AR=False )
-    #---------------------------------- Left/Ipsi -----------------------------------------------#
-
-
-    #---------------------------------- Right/Ipsi ----------------------------------------------#
-    tact_RI_id = {
-    'LV/RT': 23
-    , 'LT/RT': 27
-    , 'RV/RT': 31
-    , 'RT/RT': 35
-    }
-    epochs_RI_tact = get_evoked( raw, tact_RI_id, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False, save_AR=False )
-    #---------------------------------- Right/Ipsi ----------------------------------------------#
-
-
-    #---------------------------------- Concatenate ---------------------------------------------#
-    evoked_ipsi = concatenate_epochs(epochs_RI_tact, epochs_LI_tact, 'ipsi', reversal = True)
-    #---------------------------------- Concatenate ---------------------------------------------#
-
-
-    #-------------------------------- Join Ipsi/Contra ------------------------------------------#
-    # average channels
-    tact_avg = np.array( [(evoked_ipsi.data[0] + evoked_contra.data[0])/2] )  # get form (n_channel, n_times)
-    info_tact = mne.create_info(
-        ch_names = ['Avg C4 & C3']
-        , sfreq = raw.info['sfreq']
-        , ch_types = 'eeg'
-        )
-    evoked_grand_avg_tact = mne.EvokedArray(tact_avg, info_tact, tmin=tmin)
-    # evoked_grand_avg_tact.plot()
-    grand_avg_tact = evoked_grand_avg_tact.data[0]
-    #-------------------------------- Join Ipsi/Contra ------------------------------------------#
-
-
-    #------------------------------------ Plot Both ---------------------------------------------#
-    samps = np.shape(grand_avg_vis)[0]
-    X = np.linspace(-200, 500, samps)
-
-    f, ax = plt.subplots(1,2, sharex = True, sharey = True)
-
-    f.add_subplot(111, frameon = False)
+    f.add_subplot(111, frameon=False)
 
     # hide tick and tick label of the big axes
     plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
     plt.xlabel("time (ms)")
-    plt.ylabel("voltage (V)", labelpad = 15)
+    plt.ylabel("voltage (V)", labelpad=15)
 
-    ax[0].plot(X, grand_avg_vis)
-    ax[0].axhline(y=0, color = 'black')
-    ax[0].axvline(x=0, linestyle='dashed', color = 'black')
-    ax[0].set_title('visual target')
+    ax[0].plot(X, grand_avg_vis_1000ms)
+    ax[0].axhline(y=0, color='black')
+    ax[0].axvline(x=0, linestyle='dashed', color='black')
+    ax[0].set_title('1000 ms CTOA')
 
-    ax[1].plot(X, grand_avg_tact)
-    ax[1].axhline(y=0, color = 'black')
-    ax[1].axvline(x=0, linestyle='dashed', color = 'black')
-    ax[1].set_title('tactile target')
+    ax[1].plot(X, grand_avg_vis_700ms)
+    ax[1].axhline(y=0, color='black')
+    ax[1].axvline(x=0, linestyle='dashed', color='black')
+    ax[1].set_title('700 ms CTOA')
 
     ax[1].set_ylim(ax[1].get_ylim()[::-1])
-    ax[1].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    ax[1].ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+    plt.gca().invert_yaxis()
 
     plt.savefig('%s/P_averages/grand_averages_%s.png'%(directory, participant) )
 
-    if dont_plot:
-        plt.close()
-    #------------------------------------ Plot Both ---------------------------------------------#
+    plt.show()
+    # ---------------------------------------- Plot ---------------------------------------------#
+
+
 
 
 
@@ -602,8 +580,8 @@ for participant in participants:
     dataset = list(
         zip(
             X
-            , grand_avg_vis.tolist()
-            , grand_avg_tact.tolist()
+            , grand_avg_vis_1000ms.tolist()
+            , grand_avg_vis_700ms.tolist()
             )
         )
 
@@ -612,8 +590,8 @@ for participant in participants:
         , columns =
             [
             'time (ms)'
-            , "ZZZV"  # where Z means collapsed across
-            , "ZZZT"
+            , "1000"  # where Z means collapsed across
+            , "700"
             ]
      )
 
@@ -622,307 +600,238 @@ for participant in participants:
 
 
 
-    ##############################################################################################
-    ####                                    By Condition                                      ####
-    ##############################################################################################
-
-
-    ####################################### Tactile/Tactile ######################################
-
-    #---------------------------------- Cued/Contra/TT ------------------------------------------#
-    epochs_contra_LTLT = get_evoked( raw, {'LT/LT': 25}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RTRT = get_evoked( raw, {'RT/RT': 35}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_contra_TT = concatenate_epochs(epochs_contra_LTLT, epochs_contra_RTRT, 'cued contra TT')
-    cued_contra_TT = evoked_cued_contra_TT.data[0]
-    #---------------------------------- Cued/Contra/TT ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Contra/TT ----------------------------------------#
-    epochs_contra_LTRT = get_evoked( raw, {'LT/RT': 27}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RTLT = get_evoked( raw, {'RT/LT': 33}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_contra_TT = concatenate_epochs(epochs_contra_LTRT, epochs_contra_RTLT, 'uncued contra TT')
-    uncued_contra_TT = evoked_uncued_contra_TT.data[0]
-    #---------------------------------- Uncued/Contra/TT ----------------------------------------#
-
-
-    #---------------------------------- Cued/Ipsi/TT ------------------------------------------#
-    epochs_ipsi_LTLT = get_evoked( raw, {'LT/LT': 25}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RTRT = get_evoked( raw, {'RT/RT': 35}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_ipsi_TT = concatenate_epochs(epochs_ipsi_LTLT, epochs_ipsi_RTRT, 'cued ipsi TT', reversal = True)
-    cued_ipsi_TT = evoked_cued_ipsi_TT.data[0]
-    #---------------------------------- Cued/Contra/TT ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Ipsi/TT ----------------------------------------#
-    epochs_ipsi_LTRT = get_evoked( raw, {'LT/RT': 27}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RTLT = get_evoked( raw, {'RT/LT': 33}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_ipsi_TT = concatenate_epochs(epochs_ipsi_LTRT, epochs_ipsi_RTLT, 'uncued ipsi TT', reversal = True)
-    uncued_ipsi_TT = evoked_uncued_ipsi_TT.data[0]
-    #---------------------------------- Uncued/Contra/TT ----------------------------------------#
-
-
-
-    ####################################### Visual/Tactile #######################################
-
-    #---------------------------------- Cued/Contra/VT ------------------------------------------#
-    epochs_contra_LVLT = get_evoked( raw, {'LV/LT': 21}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RVRT = get_evoked( raw, {'RV/RT': 31}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_contra_VT = concatenate_epochs(epochs_contra_LVLT, epochs_contra_RVRT, 'cued contra VT')
-    cued_contra_VT = evoked_cued_contra_VT.data[0]
-    #---------------------------------- Cued/Contra/VT ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Contra/VT ----------------------------------------#
-    epochs_contra_LVRT = get_evoked( raw, {'LV/RT': 23}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RVLT = get_evoked( raw, {'RV/LT': 29}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_contra_VT = concatenate_epochs(epochs_contra_LVRT, epochs_contra_RVLT, 'uncued contra VT')
-    uncued_contra_VT = evoked_uncued_contra_VT.data[0]
-    #---------------------------------- Uncued/Contra/VT ----------------------------------------#
-
-
-    #---------------------------------- Cued/Ipsi/VT ------------------------------------------#
-    epochs_ipsi_LVLT = get_evoked( raw, {'LV/LT': 21}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RVRT = get_evoked( raw, {'RV/RT': 31}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_ipsi_VT = concatenate_epochs(epochs_ipsi_LVLT, epochs_ipsi_RVRT, 'cued ipsi VT', reversal = True)
-    cued_ipsi_VT = evoked_cued_ipsi_VT.data[0]
-    #---------------------------------- Cued/Contra/VT ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Ipsi/VT ----------------------------------------#
-    epochs_ipsi_LVRT = get_evoked( raw, {'LT/RT': 23}, ['C4'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RVLT = get_evoked( raw, {'RT/LT': 29}, ['C3'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_ipsi_VT = concatenate_epochs(epochs_ipsi_LVRT, epochs_ipsi_RVLT, 'uncued ipsi VT', reversal = True)
-    uncued_ipsi_VT = evoked_uncued_ipsi_VT.data[0]
-    #---------------------------------- Uncued/Contra/VT ----------------------------------------#
-
-
-
-    ####################################### Tactile/Visual #######################################
-
-    #---------------------------------- Cued/Contra/TV ------------------------------------------#
-    epochs_contra_LTLV = get_evoked( raw, {'LT/LV': 24}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RTRV = get_evoked( raw, {'RT/RV': 34}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_contra_TV = concatenate_epochs(epochs_contra_LTLV, epochs_contra_RTRV, 'cued contra TV')
-    cued_contra_TV = evoked_cued_contra_TV.data[0]
-    #---------------------------------- Cued/Contra/TV ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Contra/TV ----------------------------------------#
-    epochs_contra_LTRV = get_evoked( raw, {'LT/RV': 26}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RTLV = get_evoked( raw, {'RT/LV': 32}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_contra_TV = concatenate_epochs(epochs_contra_LTRV, epochs_contra_RTLV, 'uncued contra TV')
-    uncued_contra_TV = evoked_uncued_contra_TV.data[0]
-    #---------------------------------- Uncued/Contra/TV ----------------------------------------#
-
-
-    #---------------------------------- Cued/Ipsi/TV ------------------------------------------#
-    epochs_ipsi_LTLV = get_evoked( raw, {'LT/LV': 24}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RTRV = get_evoked( raw, {'RT/RV': 34}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_ipsi_TV = concatenate_epochs(epochs_ipsi_LTLV, epochs_ipsi_RTRV, 'cued ipsi TV')
-    cued_ipsi_TV = evoked_cued_ipsi_TV.data[0]
-    #---------------------------------- Cued/Contra/TV ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Ipsi/TV ----------------------------------------#
-    epochs_ipsi_LTRV = get_evoked( raw, {'LT/RV': 26}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RTLV = get_evoked( raw, {'RT/LV': 32}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_ipsi_TV = concatenate_epochs(epochs_ipsi_LTRV, epochs_ipsi_RTLV, 'uncued ipsi TV')
-    uncued_ipsi_TV = evoked_uncued_ipsi_TV.data[0]
-    #---------------------------------- Uncued/Contra/TV ----------------------------------------#
-
-
-
-    ####################################### Visual/Visual ########################################
-
-    #---------------------------------- Cued/Contra/VV ------------------------------------------#
-    epochs_contra_LVLV = get_evoked( raw, {'LV/LV': 20}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RVRV = get_evoked( raw, {'RV/RV': 30}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_contra_VV = concatenate_epochs(epochs_contra_LVLV, epochs_contra_RVRV, 'cued contra VV')
-    cued_contra_VV = evoked_cued_contra_VV.data[0]
-    #---------------------------------- Cued/Contra/VV ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Contra/VV ----------------------------------------#
-    epochs_contra_LVRV = get_evoked( raw, {'LV/RV': 22}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_contra_RVLV = get_evoked( raw, {'RV/LV': 28}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_contra_VV = concatenate_epochs(epochs_contra_LVRV, epochs_contra_RVLV, 'uncued contra VV')
-    uncued_contra_VV = evoked_uncued_contra_VV.data[0]
-    #---------------------------------- Uncued/Contra/VV ----------------------------------------#
-
-
-    #---------------------------------- Cued/Ipsi/VV ------------------------------------------#
-    epochs_ipsi_LVLV = get_evoked( raw, {'LV/LV': 20}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RVRV = get_evoked( raw, {'RV/RV': 30}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_cued_ipsi_VV = concatenate_epochs(epochs_ipsi_LVLV, epochs_ipsi_RVRV, 'cued ipsi VV')
-    cued_ipsi_VV = evoked_cued_ipsi_VV.data[0]
-    #---------------------------------- Cued/Ipsi/VV ------------------------------------------#
-
-
-    #---------------------------------- Uncued/Ipsi/VV ----------------------------------------#
-    epochs_ipsi_LVRV = get_evoked( raw, {'LV/RV': 22}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    epochs_ipsi_RVLV = get_evoked( raw, {'RV/LV': 28}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
-    evoked_uncued_ipsi_VV = concatenate_epochs(epochs_ipsi_LVRV, epochs_ipsi_RVLV, 'uncued ipsi VV')
-    uncued_ipsi_VV = evoked_uncued_ipsi_VV.data[0]
-    #---------------------------------- Uncued/Ipsi/VV ----------------------------------------#
-
-
-
-
-    #------------------------------------ Plot Together -----------------------------------------#
-    X = np.linspace(-200, 500, samps)
-
-    f, ax = plt.subplots(2,4, sharex = True, sharey = True)
-
-    ax111 = f.add_subplot(111, frameon = False)
-    ax111.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax111.set_xlabel("time (ms)")
-    ax111.set_ylabel("voltage (V)", labelpad = 15)
-
-    # cue modality labels
-    ax211 = f.add_subplot(211, frameon = False)
-    ax211.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax211.set_ylabel("tactile cue", rotation = 270, labelpad = 20)
-    ax211.yaxis.set_label_position("right")
-
-    ax212 = f.add_subplot(212, frameon = False)
-    ax212.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax212.set_ylabel("visual cue", rotation = 270, labelpad = 20)
-    ax212.yaxis.set_label_position("right")
-
-    # target modality labels
-    ax121 = f.add_subplot(121, frameon = False)
-    ax121.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax121.set_title("tactile target", y = 1.05)
-
-    ax122 = f.add_subplot(122, frameon = False)
-    ax122.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax122.set_title("visual target", y = 1.05)
-
-    # contralaterality labels
-    ax141 = f.add_subplot(141, frameon = False)
-    ax141.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax141.set_title("contralateral")
-
-    ax142 = f.add_subplot(142, frameon = False)
-    ax142.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax142.set_title("ipsilateral")
-
-    ax143 = f.add_subplot(143, frameon = False)
-    ax143.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax143.set_title("contralateral")
-
-    ax144 = f.add_subplot(144, frameon = False)
-    ax144.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
-    ax144.set_title("ipsilateral")
-
-    ax[0,0].plot(X, cued_contra_TT, label = 'cued')
-    ax[0,0].plot(X, uncued_contra_TT, label = 'uncued')
-    ax[0,0].axhline(y=0, color = 'black')
-    ax[0,0].axvline(x=0, linestyle='dashed', color = 'black')
-    ax[0,0].legend(prop = {'size':12})
-
-    ax[0,1].plot(X, cued_ipsi_TT, label = 'cued')
-    ax[0,1].plot(X, uncued_ipsi_TT, label = 'uncued')
-    ax[0,1].axhline(y=0, color = 'black')
-    ax[0,1].axvline(x=0, linestyle='dashed', color = 'black')
-
-    ax[1,0].plot(X, cued_contra_VT, label = 'cued')
-    ax[1,0].plot(X, uncued_contra_VT, label = 'uncued')
-    ax[1,0].axhline(y=0, color = 'black')
-    ax[1,0].axvline(x=0, linestyle='dashed', color = 'black')
-
-    ax[1,1].plot(X, cued_ipsi_VT, label = 'cued')
-    ax[1,1].plot(X, uncued_ipsi_VT, label = 'uncued')
-    ax[1,1].axhline(y=0, color = 'black')
-    ax[1,1].axvline(x=0, linestyle='dashed', color = 'black')
-
-    ax[0,2].plot(X, cued_contra_TV, label = 'cued')
-    ax[0,2].plot(X, uncued_contra_TV, label = 'uncued')
-    ax[0,2].axhline(y=0, color = 'black')
-    ax[0,2].axvline(x=0, linestyle='dashed', color = 'black')
-
-    ax[0,3].plot(X, cued_ipsi_TV, label = 'cued')
-    ax[0,3].plot(X, uncued_ipsi_TV, label = 'uncued')
-    ax[0,3].axhline(y=0, color = 'black')
-    ax[0,3].axvline(x=0, linestyle='dashed', color = 'black')
-
-    ax[1,2].plot(X, cued_contra_VV, label = 'cued')
-    ax[1,2].plot(X, uncued_contra_VV, label = 'uncued')
-    ax[1,2].axhline(y=0, color = 'black')
-    ax[1,2].axvline(x=0, linestyle='dashed', color = 'black')
-
-    ax[1,3].plot(X, cued_ipsi_VV, label = 'cued')
-    ax[1,3].plot(X, uncued_ipsi_VV, label = 'uncued')
-    ax[1,3].axhline(y=0, color = 'black')
-    ax[1,3].axvline(x=0, linestyle='dashed', color = 'black')
-
-    ax[1,3].set_ylim(ax[1,3].get_ylim()[::-1])
-    ax[1,3].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-
-    f.set_size_inches(18.5, 10.5)
-
-    plt.savefig( '%s/P_averages/condition_averages_%s.png'%(directory, participant) )
-
-    if dont_plot:
-        plt.close()
-    #------------------------------------ Plot Together -----------------------------------------#
-
-
-
-    ##############################################################################################
-    ####                                    Save Dataframe                                    ####
-    ##############################################################################################
-
-    dataset = list(
-        zip(
-            X
-            , cued_contra_TT.tolist()
-            , uncued_contra_TT.tolist()
-            , cued_ipsi_TT.tolist()
-            , uncued_ipsi_TT.tolist()
-
-            , cued_contra_VT.tolist()
-            , uncued_contra_VT.tolist()
-            , cued_ipsi_VT.tolist()
-            , uncued_ipsi_VT.tolist()
-
-            , cued_contra_TV.tolist()
-            , uncued_contra_TV.tolist()
-            , cued_ipsi_TV.tolist()
-            , uncued_ipsi_TV.tolist()
-
-            , cued_contra_VV.tolist()
-            , uncued_contra_VV.tolist()
-            , cued_ipsi_VV.tolist()
-            , uncued_ipsi_VV.tolist()
-            )
-        )
-
-    df = pd.DataFrame(
-        data = dataset
-        , columns =
-            [
-            'time (ms)'
-            ,'CCTT'
-            , 'UCTT'
-            , 'CITT'
-            , 'UITT'
-
-            , 'CCVT'
-            , 'UCVT'
-            , 'CIVT'
-            , 'UIVT'
-
-            , 'CCTV'
-            , 'UCTV'
-            , 'CITV'
-            , 'UITV'
-
-            , 'CCVV'
-            , 'UCVV'
-            , 'CIVV'
-            , 'UIVV'
-            ]
-     )
-
-    df.to_csv( '%s/P_averages/condition_averages_%s.csv'%(directory, participant) )
+    # ##############################################################################################
+    # ####                                    By Condition                                      ####
+    # ##############################################################################################
+    #
+    #
+    #
+    # ####################################### Tactile/Visual #######################################
+    #
+    # #---------------------------------- Cued/Contra/TV ------------------------------------------#
+    # epochs_contra_LTLV = get_evoked( raw, {'LT/LV': 24}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_contra_RTRV = get_evoked( raw, {'RT/RV': 34}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_cued_contra_TV = concatenate_epochs(epochs_contra_LTLV, epochs_contra_RTRV, 'cued contra TV')
+    # cued_contra_TV = evoked_cued_contra_TV.data[0]
+    # #---------------------------------- Cued/Contra/TV ------------------------------------------#
+    #
+    #
+    # #---------------------------------- Uncued/Contra/TV ----------------------------------------#
+    # epochs_contra_LTRV = get_evoked( raw, {'LT/RV': 26}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_contra_RTLV = get_evoked( raw, {'RT/LV': 32}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_uncued_contra_TV = concatenate_epochs(epochs_contra_LTRV, epochs_contra_RTLV, 'uncued contra TV')
+    # uncued_contra_TV = evoked_uncued_contra_TV.data[0]
+    # #---------------------------------- Uncued/Contra/TV ----------------------------------------#
+    #
+    #
+    # #---------------------------------- Cued/Ipsi/TV ------------------------------------------#
+    # epochs_ipsi_LTLV = get_evoked( raw, {'LT/LV': 24}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_ipsi_RTRV = get_evoked( raw, {'RT/RV': 34}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_cued_ipsi_TV = concatenate_epochs(epochs_ipsi_LTLV, epochs_ipsi_RTRV, 'cued ipsi TV')
+    # cued_ipsi_TV = evoked_cued_ipsi_TV.data[0]
+    # #---------------------------------- Cued/Contra/TV ------------------------------------------#
+    #
+    #
+    # #---------------------------------- Uncued/Ipsi/TV ----------------------------------------#
+    # epochs_ipsi_LTRV = get_evoked( raw, {'LT/RV': 26}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_ipsi_RTLV = get_evoked( raw, {'RT/LV': 32}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_uncued_ipsi_TV = concatenate_epochs(epochs_ipsi_LTRV, epochs_ipsi_RTLV, 'uncued ipsi TV')
+    # uncued_ipsi_TV = evoked_uncued_ipsi_TV.data[0]
+    # #---------------------------------- Uncued/Contra/TV ----------------------------------------#
+    #
+    #
+    #
+    # ####################################### Visual/Visual ########################################
+    #
+    # #---------------------------------- Cued/Contra/VV ------------------------------------------#
+    # epochs_contra_LVLV = get_evoked( raw, {'LV/LV': 20}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_contra_RVRV = get_evoked( raw, {'RV/RV': 30}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_cued_contra_VV = concatenate_epochs(epochs_contra_LVLV, epochs_contra_RVRV, 'cued contra VV')
+    # cued_contra_VV = evoked_cued_contra_VV.data[0]
+    # #---------------------------------- Cued/Contra/VV ------------------------------------------#
+    #
+    #
+    # #---------------------------------- Uncued/Contra/VV ----------------------------------------#
+    # epochs_contra_LVRV = get_evoked( raw, {'LV/RV': 22}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_contra_RVLV = get_evoked( raw, {'RV/LV': 28}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_uncued_contra_VV = concatenate_epochs(epochs_contra_LVRV, epochs_contra_RVLV, 'uncued contra VV')
+    # uncued_contra_VV = evoked_uncued_contra_VV.data[0]
+    # #---------------------------------- Uncued/Contra/VV ----------------------------------------#
+    #
+    #
+    # #---------------------------------- Cued/Ipsi/VV ------------------------------------------#
+    # epochs_ipsi_LVLV = get_evoked( raw, {'LV/LV': 20}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_ipsi_RVRV = get_evoked( raw, {'RV/RV': 30}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_cued_ipsi_VV = concatenate_epochs(epochs_ipsi_LVLV, epochs_ipsi_RVRV, 'cued ipsi VV')
+    # cued_ipsi_VV = evoked_cued_ipsi_VV.data[0]
+    # #---------------------------------- Cued/Ipsi/VV ------------------------------------------#
+    #
+    #
+    # #---------------------------------- Uncued/Ipsi/VV ----------------------------------------#
+    # epochs_ipsi_LVRV = get_evoked( raw, {'LV/RV': 22}, ['PO8'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # epochs_ipsi_RVLV = get_evoked( raw, {'RV/LV': 28}, ['PO7'], tmin, tmax, reject_num = 100e-6, get_evoked = False )
+    # evoked_uncued_ipsi_VV = concatenate_epochs(epochs_ipsi_LVRV, epochs_ipsi_RVLV, 'uncued ipsi VV')
+    # uncued_ipsi_VV = evoked_uncued_ipsi_VV.data[0]
+    # #---------------------------------- Uncued/Ipsi/VV ----------------------------------------#
+    #
+    #
+    #
+    #
+    # #------------------------------------ Plot Together -----------------------------------------#
+    # X = np.linspace(-200, 500, samps)
+    #
+    # f, ax = plt.subplots(2,4, sharex = True, sharey = True)
+    #
+    # ax111 = f.add_subplot(111, frameon = False)
+    # ax111.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax111.set_xlabel("time (ms)")
+    # ax111.set_ylabel("voltage (V)", labelpad = 15)
+    #
+    # # cue modality labels
+    # ax211 = f.add_subplot(211, frameon = False)
+    # ax211.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax211.set_ylabel("tactile cue", rotation = 270, labelpad = 20)
+    # ax211.yaxis.set_label_position("right")
+    #
+    # ax212 = f.add_subplot(212, frameon = False)
+    # ax212.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax212.set_ylabel("visual cue", rotation = 270, labelpad = 20)
+    # ax212.yaxis.set_label_position("right")
+    #
+    # # target modality labels
+    # ax121 = f.add_subplot(121, frameon = False)
+    # ax121.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax121.set_title("tactile target", y = 1.05)
+    #
+    # ax122 = f.add_subplot(122, frameon = False)
+    # ax122.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax122.set_title("visual target", y = 1.05)
+    #
+    # # contralaterality labels
+    # ax141 = f.add_subplot(141, frameon = False)
+    # ax141.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax141.set_title("contralateral")
+    #
+    # ax142 = f.add_subplot(142, frameon = False)
+    # ax142.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax142.set_title("ipsilateral")
+    #
+    # ax143 = f.add_subplot(143, frameon = False)
+    # ax143.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax143.set_title("contralateral")
+    #
+    # ax144 = f.add_subplot(144, frameon = False)
+    # ax144.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    # ax144.set_title("ipsilateral")
+    #
+    # ax[0,0].plot(X, cued_contra_TT, label = 'cued')
+    # ax[0,0].plot(X, uncued_contra_TT, label = 'uncued')
+    # ax[0,0].axhline(y=0, color = 'black')
+    # ax[0,0].axvline(x=0, linestyle='dashed', color = 'black')
+    # ax[0,0].legend(prop = {'size':12})
+    #
+    # ax[0,1].plot(X, cued_ipsi_TT, label = 'cued')
+    # ax[0,1].plot(X, uncued_ipsi_TT, label = 'uncued')
+    # ax[0,1].axhline(y=0, color = 'black')
+    # ax[0,1].axvline(x=0, linestyle='dashed', color = 'black')
+    #
+    # ax[1,0].plot(X, cued_contra_VT, label = 'cued')
+    # ax[1,0].plot(X, uncued_contra_VT, label = 'uncued')
+    # ax[1,0].axhline(y=0, color = 'black')
+    # ax[1,0].axvline(x=0, linestyle='dashed', color = 'black')
+    #
+    # ax[1,1].plot(X, cued_ipsi_VT, label = 'cued')
+    # ax[1,1].plot(X, uncued_ipsi_VT, label = 'uncued')
+    # ax[1,1].axhline(y=0, color = 'black')
+    # ax[1,1].axvline(x=0, linestyle='dashed', color = 'black')
+    #
+    # ax[0,2].plot(X, cued_contra_TV, label = 'cued')
+    # ax[0,2].plot(X, uncued_contra_TV, label = 'uncued')
+    # ax[0,2].axhline(y=0, color = 'black')
+    # ax[0,2].axvline(x=0, linestyle='dashed', color = 'black')
+    #
+    # ax[0,3].plot(X, cued_ipsi_TV, label = 'cued')
+    # ax[0,3].plot(X, uncued_ipsi_TV, label = 'uncued')
+    # ax[0,3].axhline(y=0, color = 'black')
+    # ax[0,3].axvline(x=0, linestyle='dashed', color = 'black')
+    #
+    # ax[1,2].plot(X, cued_contra_VV, label = 'cued')
+    # ax[1,2].plot(X, uncued_contra_VV, label = 'uncued')
+    # ax[1,2].axhline(y=0, color = 'black')
+    # ax[1,2].axvline(x=0, linestyle='dashed', color = 'black')
+    #
+    # ax[1,3].plot(X, cued_ipsi_VV, label = 'cued')
+    # ax[1,3].plot(X, uncued_ipsi_VV, label = 'uncued')
+    # ax[1,3].axhline(y=0, color = 'black')
+    # ax[1,3].axvline(x=0, linestyle='dashed', color = 'black')
+    #
+    # ax[1,3].set_ylim(ax[1,3].get_ylim()[::-1])
+    # ax[1,3].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    #
+    # f.set_size_inches(18.5, 10.5)
+    #
+    # plt.savefig( '%s/P_averages/condition_averages_%s.png'%(directory, participant) )
+    #
+    # if dont_plot:
+    #     plt.close()
+    # #------------------------------------ Plot Together -----------------------------------------#
+    #
+    #
+    #
+    # ##############################################################################################
+    # ####                                    Save Dataframe                                    ####
+    # ##############################################################################################
+    #
+    # dataset = list(
+    #     zip(
+    #         X
+    #         , cued_contra_TT.tolist()
+    #         , uncued_contra_TT.tolist()
+    #         , cued_ipsi_TT.tolist()
+    #         , uncued_ipsi_TT.tolist()
+    #
+    #         , cued_contra_VT.tolist()
+    #         , uncued_contra_VT.tolist()
+    #         , cued_ipsi_VT.tolist()
+    #         , uncued_ipsi_VT.tolist()
+    #
+    #         , cued_contra_TV.tolist()
+    #         , uncued_contra_TV.tolist()
+    #         , cued_ipsi_TV.tolist()
+    #         , uncued_ipsi_TV.tolist()
+    #
+    #         , cued_contra_VV.tolist()
+    #         , uncued_contra_VV.tolist()
+    #         , cued_ipsi_VV.tolist()
+    #         , uncued_ipsi_VV.tolist()
+    #         )
+    #     )
+    #
+    # df = pd.DataFrame(
+    #     data = dataset
+    #     , columns =
+    #         [
+    #         'time (ms)'
+    #         ,'CCTT'
+    #         , 'UCTT'
+    #         , 'CITT'
+    #         , 'UITT'
+    #
+    #         , 'CCVT'
+    #         , 'UCVT'
+    #         , 'CIVT'
+    #         , 'UIVT'
+    #
+    #         , 'CCTV'
+    #         , 'UCTV'
+    #         , 'CITV'
+    #         , 'UITV'
+    #
+    #         , 'CCVV'
+    #         , 'UCVV'
+    #         , 'CIVV'
+    #         , 'UIVV'
+    #         ]
+    #  )
+    #
+    # df.to_csv( '%s/P_averages/condition_averages_%s.csv'%(directory, participant) )
