@@ -38,6 +38,11 @@ d = d[d$block != "practice",]
 summarize_d = summary(d) 
 print(summarize_d)
 
+# use table to see conditions per participant 
+table(d$id, d$block, d$cue_location, d$cue_modality, d$cue_target_oa, d$target_location)
+# or with cued
+table(d$id, d$block, d$cue_location, d$cue_modality, d$cue_target_oa, d$cued)
+
 # overall RT distribution
 hist(d$target_response_rt, breaks = 50)
 abline(v = 100)
