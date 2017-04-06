@@ -6,7 +6,7 @@ library(ggplot2)
 library(stringr)
 library(ez)
 
-setwd("/Users/ghislaindentremont/Documents/Experiments/Multimodal_IOR/Hannah/TXT")
+setwd("/Users/hannahmacneil/Desktop/IOR Data/Data")
   
 a = ldply(
   .data = list.files(
@@ -37,11 +37,6 @@ d = d[d$block != "practice",]
 
 summarize_d = summary(d) 
 print(summarize_d)
-
-# use table to see conditions per participant 
-table(d$id, d$block, d$cue_location, d$cue_modality, d$cue_target_oa, d$target_location)
-# or with cued
-table(d$id, d$block, d$cue_location, d$cue_modality, d$cue_target_oa, d$cued)
 
 # overall RT distribution
 hist(d$target_response_rt, breaks = 50)
@@ -124,12 +119,12 @@ Check = aggregate(target_response_rt ~ cue_modality + cue_target_oa + id, data =
 Check_summ = aggregate(target_response_rt ~ cue_modality + cue_target_oa, data = Check, FUN = mean)
 
 
-# # look at IOR by P
-# IOR = aggregate(target_response_rt ~ cued + cue_modality + target_modality + id, data = f, FUN = mean)
-# IOR_summ = aggregate(target_response_rt ~ cued + cue_modality + target_modality, data = IOR, FUN = mean)
-# IOR_summ$SD = aggregate(target_response_rt ~ cued + cue_modality + target_modality, data = IOR, FUN = sd)$target_response_rt
-# 
-# # IOR 
+# look at IOR by P
+IOR2 = aggregate(target_response_rt ~ cued + cue_modality + target_modality + id, data = f, FUN = mean)
+IOR_summ = aggregate(target_response_rt ~ cued + cue_modality + target_modality, data = IOR2, FUN = mean)
+IOR_summ$SD = aggregate(target_response_rt ~ cued + cue_modality + target_modality, data = IOR2, FUN = sd)$target_response_rt
+
+# IOR
 # # cued - uncued
 # IOR_effects = aggregate(target_response_rt ~ cue_modality + target_modality + id, data = IOR, FUN = diff)
 # names(IOR_effects)[4] = "IOR"
@@ -142,15 +137,61 @@ Check_summ = aggregate(target_response_rt ~ cue_modality + cue_target_oa, data =
 # IOR_effecs_group = aggregate(IOR ~ cue_modality + target_modality, data = IOR_effects, FUN = mean)
 # print(IOR_effecs_group)
 
+# get RTs for each possible condition, for each participant
+IOR = aggregate(target_response_rt ~ cued + cue_modality + cue_target_oa + id, data = f, FUN = mean)
+IOR_effects = aggregate(target_response_rt ~ cue_modality  + cue_target_oa + id, data = IOR, FUN = diff)
+avg_IOR_effects = aggregate(target_response_rt ~ cue_modality  + cue_target_oa, data = IOR_effects, FUN = mean)
+
+# get SD for each of four possible IOR effect conditions 
+sd_IOR_effects = aggregate(target_response_rt ~ cue_modality  + cue_target_oa, data = IOR_effects, FUN = sd)
+n_IOR_effects = aggregate(target_response_rt ~ cue_modality  + cue_target_oa, data = IOR_effects, FUN = length)
+
+get_ci = function(SD, n) {
+  SE = SD/sqrt(n)
+  t_crit = qt(1-0.05/2, n-1)
+  ciw = SE * t_crit
+  return(ciw)
+}
+
+ww <- get_ci(sd_IOR_effects$target_response_rt, n_IOR_effects$target_response_rt)
+
+# Use this graph in paper!! 
+
+effs <- avg_IOR_effects$target_response_rt
+plot(1:4, effs, xlim = c(0, 5), ylim = c(-5, 80), pch = 19, xaxt = 'n', las = 2, ylab = 'IOR Effect (ms)', xlab = 'Condition', panel.first = grid(nx = NA, ny = NULL))
+abline(h = 0, lty = 'dotted')
+axis(1, 1:4, c('700 ms\nTactile', '700 ms\nVisual','1000 ms\nTactile', '1000 ms\nVisual'), tick = FALSE, cex.lab = 0.4)
+segments(1:4, effs - ww, 1:4, effs + ww)
+
+ezA = ezANOVA(
+ IOR
+ , target_response_rt
+ , id
+ , .(cued, cue_modality, cue_target_oa)
+, return_aov = T
+)
+print(ezA)
+
+I
+
+mes <- aggregate(target_response_rt ~ cued + cue_modality + cue_target_oa, data = IOR, sd)
+t_mes <- aggregate(target_response_rt ~ cue_modality)
+sort (mes$cued)
+unique(mes)
+sort (IOR$cue_modality)
+# CI for each of the 4 IOR effects averaged across participants --> plot this
 
 
-# #### Analysis ####
-# ezA = ezANOVA(
-#   IOR
-#   , target_response_rt
-#   , id
-#   , .(cued, cue_modality, target_modality)
-#   , return_aov = T
+
+
+
+# #### Ghis Analysis ####
+#ezA = ezANOVA(
+ #  IOR
+ #  , target_response_rt
+ #  , id
+ #  , .(cued, cue_modality, target_modality)
+ # , return_aov = T
 # )
 # print(ezA)
 # 

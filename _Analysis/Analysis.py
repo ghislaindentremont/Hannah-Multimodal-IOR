@@ -89,7 +89,7 @@ def do_vmrk_clean_up(participant):
 ##############################################################################################
 
 # Participant
-participants = ['e08', 'e10', 'e14']
+participants = ['e01', 'e02', 'e03', 'e04', 'e05', 'e08', 'e10', 'e14']
 
 dont_plot = True
 
